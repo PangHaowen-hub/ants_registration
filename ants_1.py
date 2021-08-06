@@ -50,7 +50,7 @@ def ants_reg(f_img_path, m_img_path, m_label_path):
     m_img = ants.image_read(m_img_path)
     m_label = ants.image_read(m_label_path)
 
-    mytx = ants.registration(fixed=f_img, moving=m_img, type_of_transform='SyN')
+    mytx = ants.registration(fixed=f_img, moving=m_img, type_of_transform='Similarity')
     # 将形变场作用于moving图像，得到配准后的图像
     warped_img = ants.apply_transforms(fixed=f_img, moving=m_img, transformlist=mytx['fwdtransforms'],
                                        interpolator="linear")
@@ -97,8 +97,8 @@ def ants_reg(f_img_path, m_img_path, m_label_path):
 
 
 if __name__ == '__main__':
-    f_img = r'./data/lobe512_000_0000.nii.gz'
-    m_img_list = get_listdir(r'./data/m_img')
+    f_img = r'./data/lobe512_000_lung.nii.gz'
+    m_img_list = get_listdir(r'./data/m_img_lung')
     m_img_list.sort()
     m_label_list = get_listdir(r'./data/m_label')
     m_label_list.sort()
