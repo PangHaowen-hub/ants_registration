@@ -26,11 +26,12 @@ def ants_reg(f_img_path, m_img_path, save_path):
     _, img_fullflname = os.path.split(m_img_path)
     ants.image_write(warped_img, os.path.join(save_path, img_fullflname))
 
+
 if __name__ == '__main__':
-    f_img_list = get_listdir(r'./data/fixed')
+    f_img_list = get_listdir(r'./data/LL/after')
     f_img_list.sort()
-    m_img_list = get_listdir(r'./data/moving')
+    m_img_list = get_listdir(r'./data/LL/before')
     m_img_list.sort()
-    save_path = "./data/warped"
+    save_path = "./data/LL/warped"
     for i in trange(len(m_img_list)):
         ants_reg(f_img_list[i], m_img_list[i], save_path)
