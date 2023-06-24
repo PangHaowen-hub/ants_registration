@@ -43,47 +43,40 @@ def get_listdir(path):
     return tmp_list
 
 
-def ants_reg(f_img_path, m_img_path, save_path, jac_path, grid_path, trans_path):
-    f_img = ants.image_read(f_img_path)
-    m_img = ants.image_read(m_img_path)
-    _, img_fullflname = os.path.split(m_img_path)
-
-    # mytx = ants.registration(fixed=f_img, moving=m_img, type_of_transform='Affine')  # TODO:改配准方法
-    # mytx = ants.registration(fixed=f_img, moving=m_img, type_of_transform='SyNAggro')
-    mytx = ants.registration(fixed=f_img, moving=m_img, type_of_transform='SyN')  # TODO:改配准方法
-
+def ants_reg(gcect, ncct, cect, save_path, jac_path, trans_path):
+    gcect_img = ants.image_read(gcect)
+    ncct_img = ants.image_read(ncct)
+    cect_img = ants.image_read(cect)
+    _, img_fullflname = os.path.split(gcect)
+    mytx = ants.registration(fixed=cect_img, moving=gcect_img, type_of_transform='SyN')  # TODO:改配准方法
 
     # 将形变场作用于moving图像，得到配准后的图像
-    warped_img = ants.apply_transforms(fixed=f_img, moving=m_img, transformlist=mytx['fwdtransforms'],
+    warped_img = ants.apply_transforms(fixed=cect_img, moving=ncct_img, transformlist=mytx['fwdtransforms'],
                                        interpolator="linear")
-    warped_img.set_direction(f_img.direction)
-    warped_img.set_origin(f_img.origin)
-    warped_img.set_spacing(f_img.spacing)
+    warped_img.set_direction(cect_img.direction)
+    warped_img.set_origin(cect_img.origin)
+    warped_img.set_spacing(cect_img.spacing)
     ants.image_write(warped_img, os.path.join(save_path, img_fullflname))
 
     # 生成图像的雅克比行列式
-    jac = ants.create_jacobian_determinant_image(domain_image=f_img, tx=mytx["fwdtransforms"][0], do_log=False,
+    jac = ants.create_jacobian_determinant_image(domain_image=cect_img, tx=mytx["fwdtransforms"][0], do_log=False,
                                                  geom=False)
     ants.image_write(jac, os.path.join(jac_path, img_fullflname))
-
-    mygr = ants.create_warped_grid(m_img)
-    mywarpedgrid = ants.create_warped_grid(mygr, grid_directions=(False, False), transform=mytx['fwdtransforms'],
-                                           fixed_reference_image=f_img)
-    ants.image_write(mywarpedgrid, os.path.join(grid_path, img_fullflname))
 
     trans = ants.image_read(mytx["fwdtransforms"][0])
     ants.image_write(trans, os.path.join(trans_path, img_fullflname))
 
 
 if __name__ == '__main__':
-    f_img_list = get_listdir(r'/disk1/panghaowen/ants_registration/temp/f')
-    f_img_list.sort()
-    m_img_list = get_listdir(r'/disk1/panghaowen/ants_registration/temp/m')
-    m_img_list.sort()
-    save_path = "/disk1/panghaowen/ants_registration/temp/save"
-    jac_path = "/disk1/panghaowen/ants_registration/temp/jac"
-    grid_path = "/disk1/panghaowen/ants_registration/temp/grid"
-    trans_path = "/disk1/panghaowen/ants_registration/temp/trans"
+    gcect_list = get_listdir(r'./CT2CECT/gcect_a')
+    gcect_list.sort()
+    ncct_list = get_listdir(r'./CT2CECT/ncct')
+    ncct_list.sort()
+    cect_list = get_listdir(r'./CT2CECT/cect_a')
+    cect_list.sort()
+    save_path = "./CT2CECT/gcect_a_SyN/ncct_warped"
+    jac_path = "./CT2CECT/gcect_a_SyN/ncct_jac"
+    trans_path = "./CT2CECT/gcect_a_SyN/ncct_trans"
 
-    for i in trange(len(m_img_list)):
-        ants_reg(f_img_list[i], m_img_list[i], save_path, jac_path, grid_path, trans_path)
+    for i in trange(len(gcect_list)):
+        ants_reg(gcect_list[i], ncct_list[i], cect_list[i], save_path, jac_path, trans_path)

@@ -43,15 +43,12 @@ def get_listdir(path):
     return tmp_list
 
 
-def ants_reg(f_img_path, m_img_path, save_path, jac_path, grid_path, trans_path):
+def ants_reg(f_img_path, m_img_path, save_path):
     f_img = ants.image_read(f_img_path)
     m_img = ants.image_read(m_img_path)
     _, img_fullflname = os.path.split(m_img_path)
 
-    # mytx = ants.registration(fixed=f_img, moving=m_img, type_of_transform='Affine')  # TODO:改配准方法
-    # mytx = ants.registration(fixed=f_img, moving=m_img, type_of_transform='SyNAggro')
-    mytx = ants.registration(fixed=f_img, moving=m_img, type_of_transform='SyN')  # TODO:改配准方法
-
+    mytx = ants.registration(fixed=f_img, moving=m_img, type_of_transform='Affine')
 
     # 将形变场作用于moving图像，得到配准后的图像
     warped_img = ants.apply_transforms(fixed=f_img, moving=m_img, transformlist=mytx['fwdtransforms'],
@@ -61,29 +58,13 @@ def ants_reg(f_img_path, m_img_path, save_path, jac_path, grid_path, trans_path)
     warped_img.set_spacing(f_img.spacing)
     ants.image_write(warped_img, os.path.join(save_path, img_fullflname))
 
-    # 生成图像的雅克比行列式
-    jac = ants.create_jacobian_determinant_image(domain_image=f_img, tx=mytx["fwdtransforms"][0], do_log=False,
-                                                 geom=False)
-    ants.image_write(jac, os.path.join(jac_path, img_fullflname))
-
-    mygr = ants.create_warped_grid(m_img)
-    mywarpedgrid = ants.create_warped_grid(mygr, grid_directions=(False, False), transform=mytx['fwdtransforms'],
-                                           fixed_reference_image=f_img)
-    ants.image_write(mywarpedgrid, os.path.join(grid_path, img_fullflname))
-
-    trans = ants.image_read(mytx["fwdtransforms"][0])
-    ants.image_write(trans, os.path.join(trans_path, img_fullflname))
-
 
 if __name__ == '__main__':
-    f_img_list = get_listdir(r'/disk1/panghaowen/ants_registration/temp/f')
+    f_img_list = get_listdir(r'./CT2CECT/cect_a')
     f_img_list.sort()
-    m_img_list = get_listdir(r'/disk1/panghaowen/ants_registration/temp/m')
+    m_img_list = get_listdir(r'./CT2CECT/ncct')
     m_img_list.sort()
-    save_path = "/disk1/panghaowen/ants_registration/temp/save"
-    jac_path = "/disk1/panghaowen/ants_registration/temp/jac"
-    grid_path = "/disk1/panghaowen/ants_registration/temp/grid"
-    trans_path = "/disk1/panghaowen/ants_registration/temp/trans"
+    save_path = "./CT2CECT/ncct_a_Affine"
 
     for i in trange(len(m_img_list)):
-        ants_reg(f_img_list[i], m_img_list[i], save_path, jac_path, grid_path, trans_path)
+        ants_reg(f_img_list[i], m_img_list[i], save_path)
